@@ -1,0 +1,19 @@
+<div class="container mt-4">
+    <div class="card p-4">
+      <h2 class="text-center mb-4">Manage Channels for {{ selectedGroup?.name }}</h2>
+      <form class="form-inline d-flex justify-content-center" (ngSubmit)="createChannel()">
+        <div class="input-group w-50">
+          <input type="text" [(ngModel)]="newChannelName" placeholder="New channel name" name="channelName" class="form-control" required />
+          <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+      </form>
+      <ul class="list-group mt-4" *ngIf="selectedGroup?.channels?.length">
+        <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let channel of selectedGroup.channels">
+          <span>{{ channel.name }}</span>
+          <button class="btn btn-danger btn-sm" (click)="deleteChannel(channel.id)">Delete</button>
+        </li>
+      </ul>
+      <p class="mt-4 text-center text-muted" *ngIf="!selectedGroup?.channels?.length">No channels available.</p>
+    </div>
+  </div>
+  

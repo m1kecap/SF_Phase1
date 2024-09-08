@@ -1,0 +1,27 @@
+<div class="container mt-4">
+    <h2>User Management</h2>
+    <div class="form-group">
+        <h3>Create New User</h3>
+        <label for="newUsername">Username:</label>
+        <input [(ngModel)]="newUsername" id="newUsername" name="newUsername" class="form-control mb-2" placeholder="Enter Username" required>
+        
+        <label for="newEmail">Email:</label>
+        <input [(ngModel)]="newEmail" id="newEmail" name="newEmail" class="form-control mb-2" placeholder="Enter Email" required>
+  
+        <p *ngIf="errorMessage" class="text-danger">{{ errorMessage }}</p>
+    
+        <button class="btn btn-primary" (click)="createUser()" [disabled]="!newUsername || !newEmail">Create User</button>
+      </div>
+  
+    <ul class="list-group mt-4">
+        <h2 class="text-center mb-4">Manage Memberships</h2>
+      <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let user of users">
+        {{ user.username }} ({{ user.roles.join(', ') }})
+        <div>
+          <button class="btn btn-success btn-sm" (click)="promoteToAdmin(user.username)">Promote to Group Admin</button>
+          <button class="btn btn-primary btn-sm" (click)="promoteToSuperAdmin(user.username)">Promote to Super Admin</button>
+          <button class="btn btn-danger btn-sm" (click)="deleteUser(user.id)">Delete User</button>
+        </div>
+      </li>
+    </ul>
+</div>

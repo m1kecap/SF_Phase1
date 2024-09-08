@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "username": "super",
+    "email": "admin@com.au",
+    "password": "123",
+    "roles": [
+      "Super Admin"
+    ]
+  },
+  {
+    "id": 1725718509157,
+    "username": "group",
+    "email": "group@mail.com",
+    "password": "123",
+    "roles": [
+      "User",
+      "Group Admin"
+    ]
+  },
+  {
+    "id": 1725779996507,
+    "username": "user",
+    "email": "user@com.au",
+    "password": "123",
+    "roles": [
+      "User"
+    ]
+  }
+]
