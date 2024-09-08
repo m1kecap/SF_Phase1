@@ -1,8 +1,7 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit  } from '@angular/core';
 import { GroupService } from '../../services/group.service';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service'; 
-import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -26,17 +25,14 @@ export class GroupManagementComponent implements OnInit {
   constructor(
     private groupService: GroupService,
     private userService: UserService, 
-    private authService: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
       this.userId = Number(sessionStorage.getItem('userid'));
       this.isSuperAdmin = this.authService.isSuperAdmin();
       this.loadGroups();
       this.loadUsers(); 
-    }
   }
 
   loadGroups() {

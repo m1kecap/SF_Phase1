@@ -1,6 +1,5 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit  } from '@angular/core';
 import { GroupService } from '../../services/group.service';
-import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -15,15 +14,12 @@ export class JoinComponent implements OnInit {
   groups: any[] = [];
 
   constructor(
-    private groupService: GroupService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private groupService: GroupService
   ) {}
 
   ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
       this.userId = Number(sessionStorage.getItem('userid'));
       this.loadGroups();
-    }
   }
 
   loadGroups() {

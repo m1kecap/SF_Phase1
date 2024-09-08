@@ -1,5 +1,5 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser, CommonModule } from '@angular/common';
+import { Component, OnInit,  } from '@angular/core';
+import {  CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GroupService } from '../../services/group.service';
 import { UserService } from '../../services/user.service';
@@ -23,14 +23,13 @@ export class DashboardComponent implements OnInit {
     private groupService: GroupService,
     private userService: UserService,
     private authService: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    
   ) {}
 
   ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
       this.checkRoles();
       this.loadUserGroups();
-    }
+    
   }
 
   checkRoles() {
