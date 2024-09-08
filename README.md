@@ -1,8 +1,5 @@
 # LiveChatApp Phase 1 Documentation by Nhat Anh Cap - s5215692
 
-
-Client-Server Interaction
-
 - **Server**: The backend code is located in the `/server` folder. It contains:
   - `/routes`: Defines all the server routes for handling users, groups, and channel such as `groupRoutes.js`, `postLogin.js`, `userRoutes.js`
   - `/data`: JSON files (`users.json`, `groups.json`) for storing data.
