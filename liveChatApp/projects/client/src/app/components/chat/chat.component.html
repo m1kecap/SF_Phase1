@@ -1,14 +1,45 @@
 <div class="container mt-4">
-    <div class="card p-4">
-      <h2 class="text-center mb-4">{{ channelName }}</h2>
-      <div class="chat-window border rounded p-3 mb-3" style="height: 400px; overflow-y: auto;">
-        <p>No chat functionality yet.</p>
+  <div class="card p-4">
+    <h2 class="text-center mb-4">{{ channelName }}</h2>
+    
+    <!-- profile image -->
+    <div class="mb-3 text-center">
+      <img [src]="currentUserProfileImage" alt="Profile" class="profile-image mb-2" style="width: 100px; height: 100px; border-radius: 50%;">
+      <input type="file" id="profileImage" (change)="onProfileImageSelected($event)" accept="image/*" class="form-control">
+      <button (click)="uploadProfileImage()" class="btn btn-secondary mt-2" [disabled]="!selectedProfileImage">Update Profile Image</button>
+    </div>
+
+    <div class="mb-3">
+      <div *ngIf="myPeerId">
+        <button (click)="startVideoChat()">Start Video Chat</button>
       </div>
-  
-      <div class="input-group">
-        <input type="text" class="form-control" [(ngModel)]="message" placeholder="Type a message" />
-        <button class="btn btn-primary" style="min-width: 100px;">Send</button>
+      <app-video-chat *ngIf="showVideoChat" (closeVideoChat)="onVideoChatClosed()"></app-video-chat>
+    </div>
+
+    <div class="chat-window border rounded p-3 mb-3" style="height: 400px; overflow-y: auto;">
+      <div *ngFor="let msg of messages" [ngClass]="{'text-muted': msg.system}">
+        <ng-container *ngIf="!msg.system">
+          <img [src]="msg.userProfileImage ? ('http://localhost:8080' + msg.userProfileImage) : defaultAvatarPath" 
+               alt="Profile" class="profile-image" 
+               style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+          <strong>{{ msg.username }}:   </strong> 
+          <span>{{ msg.content }}   </span>
+          <img *ngIf="msg.imageUrl" [src]="'http://localhost:8080' + msg.imageUrl" alt="Chat image" class="chat-image" style="max-width: 200px; max-height: 200px; margin-top: 5px;">
+        </ng-container>
+        <ng-container *ngIf="msg.system">
+          <strong>{{ msg.username }}:   </strong> 
+          <span>{{ msg.content }}   </span>
+        </ng-container>
+        <small class="text-muted ml-2">{{ msg.timestamp | date:'short' }}</small>
       </div>
     </div>
+    
+
+    <!-- input -->
+    <div class="input-group">
+      <input type="text" class="form-control" [(ngModel)]="message" (keyup.enter)="sendMessage()" placeholder="Type a message">
+      <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*">
+      <button class="btn btn-primary" (click)="sendMessage()">Send</button>
+    </div>
   </div>
-  
+</div>

@@ -23,7 +23,13 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/client/public"
+                "input": "projects/client/public",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "projects/client/src/assets",
+                "output": "/assets"
               }
             ],
             "styles": [
@@ -87,7 +93,13 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/client/public"
+                "input": "projects/client/public",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "projects/client/src/assets",
+                "output": "/assets"
               }
             ],
             "styles": [

@@ -1,0 +1,21 @@
+<div class="video-chat-container">
+    <div class="video-container">
+      <video #localVideo autoplay muted playsinline class="local-video"></video>
+      <video #remoteVideo autoplay playsinline class="remote-video"></video>
+    </div>
+  
+    <!-- incoming call -->
+    <div *ngIf="isReceivingCall" class="incoming-call-alert">
+      <p>Incoming call</p>
+      <button (click)="answerCall()" class="btn btn-success">Accept</button>
+      <button (click)="rejectCall()" class="btn btn-danger">Reject</button>
+    </div>
+  
+    <div *ngIf="!isReceivingCall" class="controls">
+      <input [(ngModel)]="remotePeerId" placeholder="Remote Peer ID">
+      <button (click)="startCall()" [disabled]="!remotePeerId" class="btn btn-primary">Start Call</button>
+      <button (click)="endCall()" class="btn btn-secondary">End Call</button>
+    </div>
+  
+    <p>Your Peer ID: {{ myPeerId }}</p>
+  </div>

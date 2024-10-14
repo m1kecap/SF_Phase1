@@ -61,4 +61,15 @@ export class AuthService {
     }
     return this.roles.includes(role);
   }
+
+  getUserId(): number {
+    const userId = sessionStorage.getItem('userid');
+    return userId ? Number(userId) : 0;
+  }
+
+  getUsername(): string {
+    return sessionStorage.getItem('username') || '';
+  }
+
+  
 }

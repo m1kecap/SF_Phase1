@@ -59,24 +59,27 @@ export class UserManagementComponent implements OnInit {
       id: Date.now(),  
       username: this.newUsername,
       email: this.newEmail,
-      roles: ['User'],  // default role
-      password: '123' 
+      roles: ['User'],
+      password: '123' // default password
     };
   
-    this.userService.register(newUser).subscribe(() => {
-      this.loadUsers();  
-      this.newUsername = '';  
-      this.newEmail = '';
-      this.errorMessage = ''; 
-    }, error => {
-      this.errorMessage = 'Error creating user';
-      console.error('Error creating user:', error);
+    this.userService.register(newUser).subscribe({
+      next: () => {
+        this.loadUsers();
+        this.newUsername = '';
+        this.newEmail = '';
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = 'Error creating user';
+        console.error('Error creating user:', error);
+      }
     });
   }
   
 
   deleteUser(userId: number) {
-    this.userService.deleteUser(userId).subscribe(() => {
+    this.userService.deleteUser(Number(userId)).subscribe(() => {
       this.users = this.users.filter(user => user.id !== userId);
     }, error => {
       console.error("Error deleting user:", error);

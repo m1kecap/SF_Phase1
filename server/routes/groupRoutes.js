@@ -1,157 +1,161 @@
-const fs = require('fs');
-const path = require('path');
-const groupsFilePath = path.join(__dirname, '../data/groups.json');
+const express = require('express');
+const Group = require('../models/Group');
 
-const readGroupsFile = (callback) => {
-  fs.readFile(groupsFilePath, 'utf8', (err, data) => {
-    if (err) throw err;
-    callback(JSON.parse(data || '[]'));
-  });
-};
-exports.readGroupsFile = readGroupsFile;
-
-const writeGroupsFile = (groups, callback) => {
-  fs.writeFile(groupsFilePath, JSON.stringify(groups, null, 2), 'utf8', callback);
-};
-
-exports.getGroups = (req, res) => {
-  readGroupsFile(groups => {
+exports.getGroups = async (req, res) => {
+  try {
+    const groups = await Group.find();
     res.json(groups);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.createGroup = async (req, res) => {
+  const newGroup = new Group({
+    id: Date.now(),
+    name: req.body.name,
+    channels: [],
+    admins: [req.body.adminId],
+    members: [req.body.adminId]
   });
+
+  try {
+    const savedGroup = await newGroup.save();
+    res.status(201).json(savedGroup);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
-exports.createGroup = (req, res) => {
-    const newGroup = req.body;
-    readGroupsFile(groups => {
-      newGroup.id = Date.now();
-      newGroup.admin = req.body.adminId; 
-      newGroup.members = [req.body.adminId]; 
-      groups.push(newGroup);
-      writeGroupsFile(groups, () => {
-        res.json(newGroup);
-      });
-    });
-  };
+exports.getGroupById = async (req, res) => {
+  try {
+    const group = await Group.findOne({ id: parseInt(req.params.id) });
+    if (group) {
+      res.json(group);
+    } else {
+      res.status(404).json({ message: 'Group not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
+exports.deleteGroup = async (req, res) => {
+  const groupId = parseInt(req.params.id);
+  const adminId = parseInt(req.query.adminId);
+  const isSuperAdmin = req.query.isSuperAdmin === 'true';
 
-exports.getGroupById = (req, res) => {
-    const groupId = parseInt(req.params.id);
-    readGroupsFile(groups => {
-      const group = groups.find(group => group.id === groupId);
-      if (group) {
-        res.json(group);
+  try {
+    const group = await Group.findOne({ id: groupId });
+    if (group) {
+      if (isSuperAdmin || group.admins.includes(adminId)) {
+        await Group.deleteOne({ id: groupId });
+        res.status(200).json({ success: true, message: "Group deleted successfully." });
       } else {
-        res.status(404).json({ message: 'Group not found' });
+        res.status(403).json({ success: false, message: "Not authorized to delete this group." });
       }
-    });
-  };
-  
-
-  exports.deleteGroup = (req, res) => {
-    const groupId = parseInt(req.params.id);
-    const adminId = parseInt(req.query.adminId); 
-    const isSuperAdmin = req.query.isSuperAdmin === 'true'; 
-  
-    readGroupsFile(groups => {
-      const group = groups.find(g => g.id === groupId);
-      if (group) {
-        if (isSuperAdmin || group.admin === adminId) {
-          const updatedGroups = groups.filter(g => g.id !== groupId);
-          writeGroupsFile(updatedGroups, () => {
-            res.status(200).json({ success: true, message: "Group deleted successfully." });
-          });
-        } 
-      } 
-    });
+    } else {
+      res.status(404).json({ success: false, message: "Group not found." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
-  
-exports.updateGroup = (req, res) => {
-    const groupId = parseInt(req.params.id);
-    const updatedGroup = req.body;
-  
-    readGroupsFile(groups => {
-      const groupIndex = groups.findIndex(group => group.id === groupId);
-      if (groupIndex !== -1) {
-        groups[groupIndex] = { ...groups[groupIndex], ...updatedGroup };
-        writeGroupsFile(groups, () => {
-          res.json(groups[groupIndex]);
-        });
-      }
-    });
-  };
-  
 
-exports.addUserToGroup = (req, res) => {
+exports.updateGroup = async (req, res) => {
+  try {
     const groupId = parseInt(req.params.id);
-    const userId = req.body.userId; 
-  
-    readGroupsFile(groups => {
-      const group = groups.find(g => g.id === groupId);
-      if (group) {
-        if (!group.members.includes(userId)) {
-          group.members.push(userId);
-        }
-        writeGroupsFile(groups, () => {
-          res.json(group);
-        });
-      }
-    });
-  };
-  
-  
-  exports.removeUserFromGroup = (req, res) => {
-    const groupId = parseInt(req.params.id);
-    const userId = req.body.userId; 
-  
-    readGroupsFile(groups => {
-      const group = groups.find(g => g.id === groupId);
-      if (group) {
-        group.members = group.members.filter(id => id !== userId);
-        writeGroupsFile(groups, () => {
-          res.json(group);
-        });
-      }
-    });
-  };
+    const { channels, ...otherFields } = req.body;
 
-  
-exports.registerInterest = (req, res) => {
-    const groupId = parseInt(req.params.id);
-    const userId = req.body.userId; 
-  
-    readGroupsFile(groups => {
-      const group = groups.find(g => g.id === groupId);
-      if (group) {
-        if (!group.interestedUsers) {
-          group.interestedUsers = []; 
-        }
-        if (!group.interestedUsers.includes(userId) && !group.members.includes(userId)) {
-          group.interestedUsers.push(userId);
-        }
-        writeGroupsFile(groups, () => {
-          res.json({ success: true, message: 'Interest registered successfully', group });
-        });
-      }
-    });
-  };
-  
+    let updateOperation = { $set: otherFields };
 
-exports.approveUserInterest = (req, res) => {
-    const groupId = parseInt(req.params.id);
-    const userId = req.body.userId;
-  
-    readGroupsFile(groups => {
-      const group = groups.find(g => g.id === groupId);
-      if (group) {
-        group.interestedUsers = group.interestedUsers.filter(id => id !== userId);
-        if (!group.members.includes(userId)) {
-          group.members.push(userId);
-        }
-        writeGroupsFile(groups, () => {
-          res.json(group);
-        });
+    if (channels) {
+      updateOperation.$set.channels = channels;
+    }
+
+    const updatedGroup = await Group.findOneAndUpdate(
+      { id: groupId },
+      updateOperation,
+      { new: true, upsert: true }
+    );
+
+    if (!updatedGroup) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    res.json(updatedGroup);
+  } catch (err) {
+    console.error('Error updating group:', err);
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.addUserToGroup = async (req, res) => {
+  try {
+    const group = await Group.findOne({ id: parseInt(req.params.id) });
+    if (group) {
+      if (!group.members.includes(req.body.userId)) {
+        group.members.push(req.body.userId);
+        await group.save();
       }
-    });
-  };
-  
-  
+      res.json(group);
+    } else {
+      res.status(404).json({ message: 'Group not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.removeUserFromGroup = async (req, res) => {
+  try {
+    const group = await Group.findOne({ id: parseInt(req.params.id) });
+    if (group) {
+      group.members = group.members.filter(id => id !== req.body.userId);
+      await group.save();
+      res.json(group);
+    } else {
+      res.status(404).json({ message: 'Group not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.registerInterest = async (req, res) => {
+  try {
+    const group = await Group.findOne({ id: parseInt(req.params.id) });
+    if (group) {
+      if (!group.interestedUsers) {
+        group.interestedUsers = [];
+      }
+      if (!group.interestedUsers.includes(req.body.userId) && !group.members.includes(req.body.userId)) {
+        group.interestedUsers.push(req.body.userId);
+        await group.save();
+      }
+      res.json({ success: true, message: 'Interest registered successfully', group });
+    } else {
+      res.status(404).json({ message: 'Group not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.approveUserInterest = async (req, res) => {
+  try {
+    const group = await Group.findOne({ id: parseInt(req.params.id) });
+    if (group) {
+      group.interestedUsers = group.interestedUsers.filter(id => id !== req.body.userId);
+      if (!group.members.includes(req.body.userId)) {
+        group.members.push(req.body.userId);
+      }
+      await group.save();
+      res.json(group);
+    } else {
+      res.status(404).json({ message: 'Group not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

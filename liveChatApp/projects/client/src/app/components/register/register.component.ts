@@ -26,19 +26,21 @@ export class RegisterComponent {
     }
   
     const newUser = {
-      id: Date.now(),  
+      id: Date.now(),
       username: this.username,
       email: this.email,
       password: this.password,
-      roles: ['User']  
+      roles: ['User']
     };
   
-    this.userService.register(newUser).subscribe(() => {
-      this.router.navigateByUrl('/login');
-      this.errorMessage = ''; 
-    }, error => {
-      this.errorMessage = error.error.message || "Registration failed";
+    this.userService.register(newUser).subscribe({
+      next: () => {
+        this.router.navigateByUrl('/login');
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = error.error.message || "Registration failed";
+      }
     });
   }
-  
 }

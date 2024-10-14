@@ -1,28 +1,22 @@
-const fs = require('fs');
-const path = require('path');
-const usersFilePath = path.join(__dirname, '../data/users.json');
+const User = require('../models/User');
 
-module.exports = function(req, res) {
+module.exports = async function(req, res) {
   const { username, password } = req.body;
 
-  fs.readFile(usersFilePath, 'utf8', (err, data) => {
-    if (err) {
-      res.status(500).json({ error: 'Internal server error' });
-      return;
-    }
-
-    const users = JSON.parse(data);
-    const user = users.find(u => u.username === username && u.password === password);
+  try {
+    const user = await User.findOne({ username, password });
 
     if (!user) {
-      res.status(401).json({ ok: false, message: 'Wrong username or password' });
-    } else {
-      res.json({
-        ok: true,
-        id: user.id,
-        username: user.username,
-        roles: user.roles
-      });
+      return res.status(401).json({ ok: false, message: 'Wrong username or password' });
     }
-  });
+
+    res.json({
+      ok: true,
+      id: user.id,
+      username: user.username,
+      roles: user.roles
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };

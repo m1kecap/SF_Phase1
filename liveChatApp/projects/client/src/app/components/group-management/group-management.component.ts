@@ -37,11 +37,13 @@ export class GroupManagementComponent implements OnInit {
 
   loadGroups() {
     this.groupService.getGroups().subscribe(groups => {
+      console.log('Loaded groups:', groups);  // Add this line
       if (this.isSuperAdmin) {
         this.userGroups = groups;
       } else {
         this.userGroups = groups.filter(group => group.adminId === this.userId || group.admins.includes(this.userId));
       }
+      console.log('Filtered user groups:', this.userGroups);  // Add this line
     });
   }
   
@@ -73,12 +75,12 @@ export class GroupManagementComponent implements OnInit {
     });
   }
 
-  addUserToGroup(userId: number, groupId: number) {
-    if (userId == null) {
+  addUserToGroup(userId: number | null, groupId: number) {
+    if (userId === null) {
       alert('Please select a user');
       return;
     }
-    this.groupService.addUserToGroup(userId, groupId).subscribe({
+    this.groupService.addUserToGroup(Number(userId), groupId).subscribe({
       next: response => {
         console.log('User is added', response);
         this.loadGroups(); 
@@ -107,4 +109,3 @@ export class GroupManagementComponent implements OnInit {
   
   
 }
-

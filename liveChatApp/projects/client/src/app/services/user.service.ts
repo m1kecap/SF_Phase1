@@ -22,7 +22,7 @@ export class UserService {
   
 
   register(user: User): Observable<User> {
-    return this.http.post<User>(`${BACKEND_URL}/register`, user);
+    return this.http.post<User>(`${BACKEND_URL}/users/register`, user);
   }
 
   updateUser(user: User): Observable<User> {
@@ -37,5 +37,11 @@ export class UserService {
     return this.http.post<any>(`${BACKEND_URL}/login`, { username, password });
   }
 
-}
+  getUserProfileImage(userId: number): Observable<string> {
+    return this.http.get<string>(`${BACKEND_URL}/users/${userId}/profile-image`);
+  }
 
+  updateUserProfileImage(userId: number, imagePath: string): Observable<any> {
+    return this.http.put(`${BACKEND_URL}/users/${userId}/profile-image`, { profileImage: imagePath });
+  }
+}

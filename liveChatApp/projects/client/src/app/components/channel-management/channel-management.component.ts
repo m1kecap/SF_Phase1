@@ -56,8 +56,16 @@ export class ChannelManagementComponent implements OnInit {
 
   saveGroup() {
     if (this.selectedGroup) {
-      this.groupService.updateGroup(this.groupId, this.selectedGroup).subscribe(group => {
-        this.selectedGroup = group;  // update the local group
+      this.selectedGroup.channels = this.selectedGroup.channels || [];
+      
+      this.groupService.updateGroup(this.selectedGroup.id, this.selectedGroup).subscribe({
+        next: (group) => {
+          this.selectedGroup = group;
+          console.log('Updated group:', group);
+        },
+        error: (error) => {
+          console.error('Error updating group:', error);
+        }
       });
     }
   }

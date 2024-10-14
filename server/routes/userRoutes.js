@@ -1,121 +1,122 @@
-const fs = require('fs');
-const path = require('path');
-const usersFilePath = path.join(__dirname, '../data/users.json');
-const { readGroupsFile } = require('./groupRoutes');
+const User = require('../models/User');
+const Group = require('../models/Group');
 
-const readUsersFile = (callback) => {
-  fs.readFile(usersFilePath, 'utf8', (err, data) => {
-    if (err) throw err;
-    callback(JSON.parse(data || '[]'));
-  });
-};
-
-const writeUsersFile = (users, callback) => {
-  fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), 'utf8', callback);
-};
-
-
-exports.getUsers = (req, res) => {
-  readUsersFile(users => {
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find();
     res.json(users);
-  });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-
-exports.updateUser = (req, res) => {
-  const userId = parseInt(req.params.id);
-  const updatedUser = req.body;
-
-  readUsersFile(users => {
-    const userIndex = users.findIndex(user => user.id === userId);
-    if (userIndex !== -1) {
-      users[userIndex] = { ...users[userIndex], ...updatedUser };
-      writeUsersFile(users, () => {
-        res.json(users[userIndex]);
-      });
-    }
-  });
+exports.updateUser = async (req, res) => {
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { id: parseInt(req.params.id) },
+      { $set: req.body },
+      { new: true }
+    );
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
-
-exports.deleteUser = (req, res) => {
-  const userId = parseInt(req.params.id);
-
-  readUsersFile(users => {
-    const updatedUsers = users.filter(user => user.id !== userId);
-    writeUsersFile(updatedUsers, () => {
-      res.json({ success: true });
-    });
-  });
+exports.deleteUser = async (req, res) => {
+  try {
+    await User.deleteOne({ id: parseInt(req.params.id) });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-
-exports.getUserGroups = (req, res) => {
-  const userId = parseInt(req.params.userId);
-
-  readUsersFile(users => {
-    const user = users.find(u => u.id === userId);
-
+exports.getUserGroups = async (req, res) => {
+  try {
+    const user = await User.findOne({ id: parseInt(req.params.userId) });
     if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
+      return res.status(404).json({ message: 'User not found' });
     }
-
-    readGroupsFile(groups => {
-      const userGroups = groups.filter(group => group.members.includes(userId));
-      res.json(userGroups);
-    });
-  });
+    const userGroups = await Group.find({ members: user.id });
+    res.json(userGroups);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-exports.registerUser = (req, res) => {
-    const { username, email, password } = req.body;
-  
-    readUsersFile(users => {
-      const userExists = users.find(u => u.username === username);
-      if (userExists) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-  
-      const newUser = {
-        id: Date.now(),
-        username,
-        email,
-        password, 
-        roles: ['User']
-      };
-  
-      users.push(newUser);
-  
-      writeUsersFile(users, () => {
-        res.status(201).json(newUser);
-      });
+exports.registerUser = async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    const userExists = await User.findOne({ username });
+    if (userExists) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+
+    const newUser = new User({
+      id: Date.now(),
+      username,
+      email,
+      password,
+      roles: ['User']
     });
-  };
-  
-  
-exports.createUserByAdmin = (req, res) => {
-    const { username, email } = req.body;
-  
-    readUsersFile(users => {
-      const userExists = users.find(u => u.username === username);
-      if (userExists) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-  
-      const newUser = {
-        id: Date.now(),
-        username,
-        email,
-        password: '123', // default password for new users
-        roles: ['User']
-      };
-  
-      users.push(newUser);
-  
-      writeUsersFile(users, () => {
-        res.status(201).json(newUser);
-      });
+
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.createUserByAdmin = async (req, res) => {
+  const { username, email } = req.body;
+
+  try {
+    const userExists = await User.findOne({ username });
+    if (userExists) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+
+    const newUser = new User({
+      id: Date.now(),
+      username,
+      email,
+      password: '123', // default password for new users
+      roles: ['User']
     });
-  };
-  
+
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+exports.getUserProfileImage = async (req, res) => {
+  try {
+    const user = await User.findOne({ id: parseInt(req.params.userId) });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user.profileImage || '');
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateUserProfileImage = async (req, res) => {
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { id: parseInt(req.params.userId) },
+      { $set: { profileImage: req.body.profileImage } },
+      { new: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ success: true, profileImage: updatedUser.profileImage });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
